@@ -135,10 +135,14 @@ router.post("/login", (req, res) => {
  *       200:
  *         description: User updated
  *       403:
- *         description: Unauthorized
+ *         description: Forbidden - can only update your own profile
  */
 router.put("/:id", authenticate, (req, res) => {
   try {
+    // kullanıcı sadece kendi profilini güncelleyebilir (admin hariç)
+    if (req.user.id !== parseInt(req.params.id) && !req.user.is_admin) {
+      return res.status(403).json({ error: "Forbidden: You can only update your own profile" });
+    }
     const user = userService.updateUser(parseInt(req.params.id), req.body);
     res.status(200).json(user);
   } catch (err) {
@@ -163,9 +167,15 @@ router.put("/:id", authenticate, (req, res) => {
  *     responses:
  *       200:
  *         description: User deleted
+ *       403:
+ *         description: Forbidden - can only delete your own account
  */
 router.delete("/:id", authenticate, (req, res) => {
   try {
+    // kullanıcı sadece kendi hesabını silebilir (admin hariç)
+    if (req.user.id !== parseInt(req.params.id) && !req.user.is_admin) {
+      return res.status(403).json({ error: "Forbidden: You can only delete your own account" });
+    }
     const result = userService.deleteUser(parseInt(req.params.id));
     res.status(200).json(result);
   } catch (err) {

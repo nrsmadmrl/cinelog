@@ -64,7 +64,7 @@ router.get("/:id", (req, res) => {
  * @swagger
  * /api/content:
  *   post:
- *     summary: Create new content
+ *     summary: Create new content (admin only)
  *     tags: [Content]
  *     security:
  *       - bearerAuth: []
@@ -91,9 +91,14 @@ router.get("/:id", (req, res) => {
  *     responses:
  *       201:
  *         description: Content created
+ *       403:
+ *         description: Forbidden - admins only
  */
 router.post("/", authenticate, (req, res) => {
   try {
+    if (!req.user.is_admin) {
+      return res.status(403).json({ error: "Forbidden: Only admins can add content" });
+    }
     const content = contentService.createContent(req.body, req.user.id);
     res.status(201).json(content);
   } catch (err) {
@@ -105,7 +110,7 @@ router.post("/", authenticate, (req, res) => {
  * @swagger
  * /api/content/{id}:
  *   put:
- *     summary: Update content
+ *     summary: Update content (admin only)
  *     tags: [Content]
  *     security:
  *       - bearerAuth: []
@@ -118,10 +123,20 @@ router.post("/", authenticate, (req, res) => {
  *     responses:
  *       200:
  *         description: Content updated
+ *       403:
+ *         description: Forbidden - admins only
  */
 router.put("/:id", authenticate, (req, res) => {
   try {
-    const content = contentService.updateContent(parseInt(req.params.id), req.body, req.user.id);
+    if (!req.user.is_admin) {
+      return res.status(403).json({ error: "Forbidden: Only admins can update content" });
+    }
+    const content = contentService.updateContent(
+      parseInt(req.params.id),
+      req.body,
+      req.user.id,
+      req.user.is_admin
+    );
     res.status(200).json(content);
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -132,7 +147,7 @@ router.put("/:id", authenticate, (req, res) => {
  * @swagger
  * /api/content/{id}:
  *   delete:
- *     summary: Delete content
+ *     summary: Delete content (admin only)
  *     tags: [Content]
  *     security:
  *       - bearerAuth: []
@@ -145,10 +160,19 @@ router.put("/:id", authenticate, (req, res) => {
  *     responses:
  *       200:
  *         description: Content deleted
+ *       403:
+ *         description: Forbidden - admins only
  */
 router.delete("/:id", authenticate, (req, res) => {
   try {
-    const result = contentService.deleteContent(parseInt(req.params.id), req.user.id);
+    if (!req.user.is_admin) {
+      return res.status(403).json({ error: "Forbidden: Only admins can delete content" });
+    }
+    const result = contentService.deleteContent(
+      parseInt(req.params.id),
+      req.user.id,
+      req.user.is_admin
+    );
     res.status(200).json(result);
   } catch (err) {
     res.status(400).json({ error: err.message });

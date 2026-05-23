@@ -40,10 +40,11 @@ const createContent = (data, userId) => {
   return getContentById(result.lastInsertRowid);
 };
 
-const updateContent = (id, data, userId) => {
+// isAdmin parametresi eklendi — admin her içeriği güncelleyebilir
+const updateContent = (id, data, userId, isAdmin = false) => {
   const content = db.prepare("SELECT * FROM content WHERE id = ?").get(id);
   if (!content) throw new Error("Content not found");
-  if (content.created_by !== userId) throw new Error("Unauthorized");
+  if (!isAdmin && content.created_by !== userId) throw new Error("Unauthorized");
 
   const { title, genre, release_year, description, cover_url } = data;
 
@@ -54,10 +55,11 @@ const updateContent = (id, data, userId) => {
   return getContentById(id);
 };
 
-const deleteContent = (id, userId) => {
+// isAdmin parametresi eklendi — admin her içeriği silebilir
+const deleteContent = (id, userId, isAdmin = false) => {
   const content = db.prepare("SELECT * FROM content WHERE id = ?").get(id);
   if (!content) throw new Error("Content not found");
-  if (content.created_by !== userId) throw new Error("Unauthorized");
+  if (!isAdmin && content.created_by !== userId) throw new Error("Unauthorized");
 
   db.prepare("DELETE FROM content WHERE id = ?").run(id);
   return { message: "Content deleted successfully" };
